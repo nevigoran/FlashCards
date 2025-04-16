@@ -59,6 +59,10 @@ h1 {
     background: white;
     perspective: 1000px;
     margin: 15px 0;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .card-inner {
@@ -69,6 +73,7 @@ h1 {
     transition: transform 0.6s;
     transform-style: preserve-3d;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .card.flipped .card-inner {
@@ -98,7 +103,7 @@ h1 {
 }
 
 .card-back {
-    background: #f0f0f0;
+    background: #f8f8f8;
     color: #333;
     transform: rotateY(180deg);
 }
@@ -491,6 +496,7 @@ input {
         flex-direction: column;
         height: 100%;
         padding: 0;
+        background: #f8f8f8;
     }
 
     .card-back #translation {
