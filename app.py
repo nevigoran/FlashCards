@@ -18,25 +18,32 @@ def connect_db():
 def init_db():
     with connect_db() as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS words (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                word TEXT NOT NULL,
-                translation TEXT NOT NULL,
-                progress INTEGER DEFAULT 0
-            )
-        ''')
         
-        # Add some test words if the table is empty
-        cursor.execute("SELECT COUNT(*) FROM words")
-        if cursor.fetchone()[0] == 0:
+        # Check if table exists
+        cursor.execute("""
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name='words'
+        """)
+        table_exists = cursor.fetchone() is not None
+        
+        if not table_exists:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS words (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    word TEXT NOT NULL,
+                    translation TEXT NOT NULL,
+                    progress INTEGER DEFAULT 0
+                )
+            ''')
+            
+            # Add test words only when creating the table for the first time
             test_words = [
                 ("hello", "привет"),
                 ("world", "мир"),
                 ("book", "книга")
             ]
             cursor.executemany("INSERT INTO words (word, translation, progress) VALUES (?, ?, 0)", test_words)
-        
+            
         conn.commit()
 
 init_db()
