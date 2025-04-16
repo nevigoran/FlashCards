@@ -176,11 +176,12 @@ button:disabled:hover {
 }
 
 #editWord, #deleteWord {
-    padding: 4px 8px;
-    min-width: 55px;
-    font-size: 12px;
-    opacity: 0.75;
-    margin: 0 1px;
+    padding: 8px 16px;
+    min-width: 120px;
+    font-size: 14px;
+    opacity: 0.8;
+    margin: 0 4px;
+    flex: 0 1 auto;
 }
 
 #editWord {
@@ -299,9 +300,10 @@ input {
 
 .utility-row {
     display: flex;
-    gap: 4px;
+    gap: 8px;
     justify-content: center;
     margin: 8px 0;
+    flex-direction: row;
 }
 
 .reset-control {
@@ -429,8 +431,10 @@ input {
     }
 
     #editWord, #deleteWord {
-        padding: 4px 6px;
-        min-width: 55px;
+        padding: 8px 16px;
+        min-width: 120px;
+        flex: 0 1 auto;
+        max-width: none;
     }
 
     .utility-controls {
@@ -440,6 +444,13 @@ input {
 
     .input-row, .utility-row {
         flex-wrap: wrap;
+    }
+    
+    .utility-row {
+        flex-direction: row;
+        width: calc(100% - 20px);
+        justify-content: center;
+        gap: 10px;
     }
     
     .input-row input {
