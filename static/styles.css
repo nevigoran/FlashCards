@@ -60,6 +60,8 @@ h1 {
     background: transparent;
     perspective: 1000px;
     margin: 15px 0;
+    display: flex;
+    align-items: stretch;
 }
 
 .card-inner {
@@ -353,12 +355,9 @@ input {
         width: 100%;
         height: 70vh;
         min-height: 400px;
-        max-height: none;
         margin: 10px 0;
         padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background: white;
     }
 
     .card-inner {
@@ -366,6 +365,7 @@ input {
         height: 100%;
         position: relative;
         transform-style: preserve-3d;
+        display: flex;
     }
 
     .card-front, .card-back {
@@ -381,6 +381,7 @@ input {
         background: white;
         padding: 20px;
         box-sizing: border-box;
+        margin: 0;
     }
 
     #word, #translation {
@@ -392,6 +393,8 @@ input {
         justify-content: center;
         word-break: break-word;
         text-align: center;
+        margin: 0;
+        padding: 0;
     }
 
     .card-back {
