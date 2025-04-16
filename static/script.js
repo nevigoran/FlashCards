@@ -141,45 +141,6 @@ function saveEdit() {
     });
 }
 
-function changeDeviceSize() {
-    const select = document.getElementById('device-select');
-    const container = document.querySelector('.container');
-    
-    // Reset to default
-    container.style.width = '';
-    container.style.height = '';
-    container.style.margin = '';
-    
-    switch(select.value) {
-        case 'iphone-5':
-            container.style.width = '320px';
-            container.style.height = '568px';
-            break;
-        case 'iphone-6':
-            container.style.width = '375px';
-            container.style.height = '667px';
-            break;
-        case 'iphone-x':
-            container.style.width = '375px';
-            container.style.height = '812px';
-            break;
-        case 'iphone-12':
-            container.style.width = '390px';
-            container.style.height = '844px';
-            break;
-        case 'iphone-12-max':
-            container.style.width = '428px';
-            container.style.height = '926px';
-            break;
-    }
-    
-    if (select.value) {
-        container.style.margin = '20px auto';
-        container.style.border = '2px solid #ccc';
-        container.style.borderRadius = '20px';
-    }
-}
-
 function knowWord() {
     if (!currentWord || currentWord.word === "Все слова изучены!") return;
     

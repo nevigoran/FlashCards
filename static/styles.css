@@ -224,9 +224,9 @@ input {
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 20px;
-    width: 80%;
+    width: 90%;
     max-width: 500px;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -532,123 +532,8 @@ input {
 
 /* Fix for iOS Safari and Chrome mobile */
 @supports (-webkit-touch-callout: none) {
-    body, .device-container {
+    body {
         height: -webkit-fill-available;
-    }
-}
-
-#device-selector {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-}
-
-#device-selector select {
-    padding: 8px;
-    border-radius: 6px;
-    border: 2px solid #ccc;
-    background: white;
-    font-size: 14px;
-}
-
-/* Device frames */
-body.device-frame {
-    background: #333;
-    padding: 20px;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.device-container {
-    position: relative;
-    background: white;
-    border-radius: 40px;
-    padding: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    transition: all 0.3s ease;
-    max-height: 100vh;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.device-container .container {
-    padding: 10px;
-    min-height: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
-}
-
-/* Adjust modal position in device container */
-.device-container .modal-content {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-/* iPhone specific sizes */
-body.iphone-5 .device-container {
-    width: 320px;
-    height: 568px;
-}
-
-body.iphone-6 .device-container {
-    width: 375px;
-    height: 667px;
-}
-
-body.iphone-x .device-container {
-    width: 375px;
-    height: 812px;
-}
-
-body.iphone-12 .device-container {
-    width: 390px;
-    height: 844px;
-}
-
-body.iphone-12-max .device-container {
-    width: 428px;
-    height: 926px;
-}
-
-/* Adjust controls layout for very small screens */
-@media (max-width: 360px) {
-    .controls {
-        padding: 0 5px;
-    }
-
-    button {
-        width: 100%;
-        margin: 3px 0;
-    }
-
-    .card {
-        height: 270px;  /* Increased from 250px */
-        font-size: 20px;
-        padding: 15px;
-    }
-
-    h1 {
-        font-size: 24px;
-        margin: 10px 0;
-    }
-
-    .stats {
-        font-size: 14px;
-    }
-
-    input {
-        padding: 8px;
-        font-size: 14px;
     }
 }
 
