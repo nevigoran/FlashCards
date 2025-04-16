@@ -52,16 +52,13 @@ h1 {
 
 .card {
     width: 100%;
-    max-width: 400px;
     height: 280px;
     border-radius: 12px;
     padding: 0;
     position: relative;
-    background: transparent;
+    background: white;
     perspective: 1000px;
     margin: 15px 0;
-    display: flex;
-    align-items: stretch;
 }
 
 .card-inner {
@@ -343,29 +340,32 @@ input {
 @media (max-width: 480px) {
     body {
         padding: 0;
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow-x: hidden;
     }
 
     .container {
-        padding: 0;
-        gap: 6px;
+        padding: 10px 0;
         width: 100%;
+        height: auto;
     }
 
     .card {
         width: 100%;
-        height: 70vh;
-        min-height: 400px;
+        height: 400px;
         margin: 10px 0;
-        padding: 0;
+        border-radius: 0;
         background: white;
     }
 
     .card-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
-        position: relative;
-        transform-style: preserve-3d;
-        display: flex;
     }
 
     .card-front, .card-back {
@@ -381,36 +381,35 @@ input {
         background: white;
         padding: 20px;
         box-sizing: border-box;
-        margin: 0;
     }
 
     #word, #translation {
         width: 100%;
         height: 100%;
-        font-size: clamp(28px, 8vw, 36px);
         display: flex;
         align-items: center;
         justify-content: center;
-        word-break: break-word;
-        text-align: center;
-        margin: 0;
-        padding: 0;
+        font-size: clamp(28px, 8vw, 36px);
     }
 
-    .card-back {
-        transform: rotateY(180deg);
-        background: #f0f0f0;
-    }
-
-    .controls {
-        width: calc(100% - 20px);
-        margin: 5px 10px;
-    }
-
-    .add-word-section {
-        width: calc(100% - 20px);
-        margin: 10px;
+    .modal-content {
+        margin: 5% auto;
         padding: 15px;
+        width: 95%;
+    }
+
+    .modal-content input {
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    .modal-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-controls button {
+        width: 100%;
     }
 
     .card {
@@ -517,28 +516,6 @@ input {
     max-width: 500px;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 480px) {
-    .modal-content {
-        margin: 5% auto;
-        padding: 15px;
-        width: 95%;
-    }
-
-    .modal-content input {
-        width: 100%;
-        margin: 8px 0;
-    }
-
-    .modal-controls {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .modal-controls button {
-        width: 100%;
-    }
 }
 
 /* Fix for iOS Safari 100vh issue */
