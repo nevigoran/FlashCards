@@ -353,10 +353,10 @@ input {
     }
 
     .card {
-        width: 100%;
+        width: calc(100% - 20px);
         height: 400px;
-        margin: 10px 0;
-        border-radius: 0;
+        margin: 10px;
+        border-radius: 8px;
         background: white;
     }
 
@@ -381,6 +381,7 @@ input {
         background: white;
         padding: 20px;
         box-sizing: border-box;
+        border-radius: 8px;
     }
 
     #word, #translation {
