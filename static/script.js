@@ -67,20 +67,30 @@ function speakWord(lang) {
     speechUtterance = new SpeechSynthesisUtterance(text);
     
     // Set language based on the side
-    speechUtterance.lang = lang === 'en' ? 'en-GB' : 'ru-RU';
+    speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
     // Adjust speech parameters for better clarity
     speechUtterance.rate = 0.9;  // Slightly slower than normal
     speechUtterance.pitch = 1;   // Normal pitch
     
-    // Select an English voice for English words
+    // Select a female American English voice for English words
     if (lang === 'en') {
         let voices = speechSynthesis.getVoices();
-        let englishVoice = voices.find(voice => 
-            voice.lang.startsWith('en') && !voice.name.includes('Microsoft')
+        let femaleEnglishVoice = voices.find(voice => 
+            voice.lang.startsWith('en-US') && 
+            voice.name.toLowerCase().includes('female') &&
+            !voice.name.includes('Microsoft')
         );
-        if (englishVoice) {
-            speechUtterance.voice = englishVoice;
+        
+        // Fallback to any US English voice if no specific female voice is found
+        if (!femaleEnglishVoice) {
+            femaleEnglishVoice = voices.find(voice => 
+                voice.lang === 'en-US' && !voice.name.includes('Microsoft')
+            );
+        }
+        
+        if (femaleEnglishVoice) {
+            speechUtterance.voice = femaleEnglishVoice;
         }
     }
     
