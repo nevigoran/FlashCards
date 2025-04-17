@@ -10,10 +10,10 @@ def connect_db():
     try:
         # Use absolute path in the project directory
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flashcards.db")
-        print("Используем базу данных:", db_path)
+        print("Используем базу данных: {}".format(db_path))
         return sqlite3.connect(db_path)
     except sqlite3.Error as e:
-        print(f"Ошибка подключения к базе данных: {e}")
+        print("Ошибка подключения к базе данных: {}".format(e))
         raise
 
 def init_db():
