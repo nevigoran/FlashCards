@@ -21,7 +21,12 @@ function initializeVoices() {
     ) || voices.find(voice => 
         voice.lang === 'en-US' && 
         !voice.name.toLowerCase().includes('female') &&
-        !voice.name.includes('Microsoft')
+        !voice.name.toLowerCase().includes('samantha') &&
+        !voice.name.includes('Microsoft') &&
+        !voice.name.includes('Zira')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' &&
+        !voice.name.toLowerCase().includes('female')
     ) || voices.find(voice => 
         voice.lang === 'en-US'
     );
@@ -98,8 +103,8 @@ function speakWord(lang) {
     
     if (lang === 'en' && selectedVoice) {
         speechUtterance.voice = selectedVoice;
-        // Adjust parameters for more natural sound
-        speechUtterance.rate = 0.9;     // Slightly slower
+        // Optimize parameters for more natural male voice
+        speechUtterance.rate = 0.9;     // Slightly slower for clarity
         speechUtterance.pitch = 1.0;    // Natural pitch
         speechUtterance.volume = 1.0;   // Full volume
     }
