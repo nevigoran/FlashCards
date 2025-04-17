@@ -10,53 +10,43 @@ function initializeVoices() {
     const voices = speechSynthesis.getVoices();
     console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
     
-    // Try different male voice types in order of preference
+    // Try to find an explicitly male voice
     selectedVoice = voices.find(voice => {
-        const isMaleVoice = 
-            voice.name.toLowerCase().includes('male') ||
-            ['daniel', 'tom', 'alex', 'guy', 'james', 'john'].some(name => 
-                voice.name.toLowerCase().includes(name.toLowerCase())
-            );
-        
-        const isUnwantedVoice = 
-            voice.name.toLowerCase().includes('female') ||
+        // Skip any female or unwanted voices immediately
+        if (voice.name.toLowerCase().includes('female') ||
             voice.name.toLowerCase().includes('samantha') ||
             voice.name.toLowerCase().includes('victoria') ||
             voice.name.toLowerCase().includes('karen') ||
             voice.name.includes('Zira') ||
             voice.name.includes('Microsoft') ||
-            voice.name.includes('Cortana');
+            voice.name.includes('Cortana')) {
+            return false;
+        }
+        
+        // Look for explicit male voices
+        const isMaleVoice = 
+            voice.name.toLowerCase().includes('male') ||
+            ['daniel', 'tom', 'alex', 'guy', 'james', 'john', 'david'].some(name => 
+                voice.name.toLowerCase().includes(name.toLowerCase())
+            );
             
         // Log voice evaluation
-        console.log(`Evaluating voice: ${voice.name} - Male: ${isMaleVoice}, Unwanted: ${isUnwantedVoice}`);
+        console.log(`Evaluating voice: ${voice.name} - Selected: ${isMaleVoice && voice.lang.startsWith('en')}`);
             
-        return voice.lang.startsWith('en') && isMaleVoice && !isUnwantedVoice;
+        return voice.lang.startsWith('en') && isMaleVoice;
     });
 
-    // If no specific male voice found, try to find any non-female English voice
-    if (!selectedVoice) {
-        selectedVoice = voices.find(voice => 
-            voice.lang.startsWith('en') && 
-            !voice.name.toLowerCase().includes('female') &&
-            !voice.name.toLowerCase().includes('samantha') &&
-            !voice.name.toLowerCase().includes('victoria') &&
-            !voice.name.toLowerCase().includes('karen') &&
-            !voice.name.includes('Zira') &&
-            !voice.name.includes('Microsoft') &&
-            !voice.name.includes('Cortana')
-        );
-    }
-    
+    // If no voice found, don't use any voice rather than risk using a female one
     if (selectedVoice) {
-        console.log('Selected voice:', selectedVoice.name);
-        // Optimize voice parameters for more natural male sound
+        console.log('Selected male voice:', selectedVoice.name);
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.voice = selectedVoice;
         speechUtterance.rate = 0.9;     // Slightly slower for clarity
         speechUtterance.pitch = 0.85;   // Lower pitch to ensure male voice
         speechUtterance.volume = 1.0;   // Full volume
     } else {
-        console.log('No suitable male voice found');
+        console.log('No suitable male voice found - speech synthesis disabled');
+        selectedVoice = null;
     }
 }
 
@@ -111,7 +101,9 @@ function loadNewWord() {
 }
 
 function speakWord(lang) {
-    if (!currentWord || currentWord.word === "Все слова изучены!") return;
+    if (!currentWord || currentWord.word === "Все слова изучены!" || (lang === 'en' && !selectedVoice)) {
+        return;
+    }
     
     // Cancel any ongoing speech
     if (speechSynthesis.speaking) {
@@ -125,7 +117,7 @@ function speakWord(lang) {
     // Set language and voice properties
     utterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
-    if (lang === 'en' && selectedVoice) {
+    if (lang === 'en') {
         utterance.voice = selectedVoice;
         utterance.rate = 0.9;     // Maintain consistent rate
         utterance.pitch = 0.85;   // Keep the lower pitch for male voice
