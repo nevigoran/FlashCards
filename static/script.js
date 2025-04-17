@@ -69,28 +69,32 @@ function speakWord(lang) {
     // Set language based on the side
     speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
-    // Adjust speech parameters for better clarity
-    speechUtterance.rate = 0.9;  // Slightly slower than normal
-    speechUtterance.pitch = 1;   // Normal pitch
+    // Adjust speech parameters for more natural sound
+    speechUtterance.rate = 0.95;  // Slightly slower for clarity
+    speechUtterance.pitch = 1.0;  // Natural pitch
     
-    // Select a female American English voice for English words
+    // Select a natural male American English voice for English words
     if (lang === 'en') {
         let voices = speechSynthesis.getVoices();
-        let femaleEnglishVoice = voices.find(voice => 
-            voice.lang.startsWith('en-US') && 
-            voice.name.toLowerCase().includes('female') &&
+        // Try to find a natural-sounding male US voice (often these have names like "Alex" or include "male")
+        let maleEnglishVoice = voices.find(voice => 
+            voice.lang === 'en-US' && 
+            (voice.name.toLowerCase().includes('male') || 
+             voice.name.includes('Alex') || 
+             voice.name.includes('Guy')) &&
             !voice.name.includes('Microsoft')
         );
         
-        // Fallback to any US English voice if no specific female voice is found
-        if (!femaleEnglishVoice) {
-            femaleEnglishVoice = voices.find(voice => 
-                voice.lang === 'en-US' && !voice.name.includes('Microsoft')
+        // Fallback to any high-quality US English voice
+        if (!maleEnglishVoice) {
+            maleEnglishVoice = voices.find(voice => 
+                voice.lang === 'en-US' && 
+                !voice.name.includes('Microsoft')
             );
         }
         
-        if (femaleEnglishVoice) {
-            speechUtterance.voice = femaleEnglishVoice;
+        if (maleEnglishVoice) {
+            speechUtterance.voice = maleEnglishVoice;
         }
     }
     
