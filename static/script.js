@@ -3,6 +3,33 @@ document.addEventListener("DOMContentLoaded", loadNewWord);
 let currentWord = null;
 let speechSynthesis = window.speechSynthesis;
 let speechUtterance = null;
+let selectedVoice = null;
+
+// Initialize voices function
+function initializeVoices() {
+    const voices = speechSynthesis.getVoices();
+    // Try different voice types in order of preference
+    selectedVoice = voices.find(voice => 
+        voice.lang === 'en-US' && 
+        voice.name.includes('Daniel')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' && 
+        voice.name.includes('Tom')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' && 
+        voice.name.includes('Alex')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' && 
+        !voice.name.toLowerCase().includes('female') &&
+        !voice.name.includes('Microsoft')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US'
+    );
+    
+    if (selectedVoice) {
+        console.log('Selected voice:', selectedVoice.name);
+    }
+}
 
 function flipCard() {
     document.querySelector(".card").classList.toggle("flipped");
@@ -66,41 +93,22 @@ function speakWord(lang) {
     const text = lang === 'en' ? currentWord.word : currentWord.translation;
     speechUtterance = new SpeechSynthesisUtterance(text);
     
-    // Set language based on the side
+    // Set language and voice properties
     speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
-    // Adjust speech parameters for more natural sound
-    speechUtterance.rate = 0.95;  // Slightly slower for clarity
-    speechUtterance.pitch = 1.0;  // Natural pitch
-    
-    // Select a natural male American English voice for English words
-    if (lang === 'en') {
-        let voices = speechSynthesis.getVoices();
-        // Try to find a natural-sounding male US voice (often these have names like "Alex" or include "male")
-        let maleEnglishVoice = voices.find(voice => 
-            voice.lang === 'en-US' && 
-            (voice.name.toLowerCase().includes('male') || 
-             voice.name.includes('Alex') || 
-             voice.name.includes('Guy')) &&
-            !voice.name.includes('Microsoft')
-        );
-        
-        // Fallback to any high-quality US English voice
-        if (!maleEnglishVoice) {
-            maleEnglishVoice = voices.find(voice => 
-                voice.lang === 'en-US' && 
-                !voice.name.includes('Microsoft')
-            );
-        }
-        
-        if (maleEnglishVoice) {
-            speechUtterance.voice = maleEnglishVoice;
-        }
+    if (lang === 'en' && selectedVoice) {
+        speechUtterance.voice = selectedVoice;
+        // Adjust parameters for more natural sound
+        speechUtterance.rate = 0.9;     // Slightly slower
+        speechUtterance.pitch = 1.0;    // Natural pitch
+        speechUtterance.volume = 1.0;   // Full volume
     }
     
     // Handle errors
     speechUtterance.onerror = function(event) {
         console.error('Speech synthesis error:', event);
+        // Try reinitializing voices on error
+        initializeVoices();
     };
     
     // Speak the word
@@ -261,12 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNewWord();
     updateTotalWords();
 
-    // Initialize speech synthesis voices
-    speechSynthesis.onvoiceschanged = () => {
-        speechSynthesis.getVoices();
-    };
-    // Trigger initial voice load
-    speechSynthesis.getVoices();
+    // Initialize voices
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => {
+            initializeVoices();
+        };
+    }
+    
+    // Try to initialize voices immediately in case they're already loaded
+    initializeVoices();
 });
 
 // Close modal when clicking outside
