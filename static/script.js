@@ -8,7 +8,7 @@ let selectedVoice = null;
 // Initialize voices function
 function initializeVoices() {
     const voices = speechSynthesis.getVoices();
-    // Try different voice types in order of preference
+    // Try different male voice types in order of preference
     selectedVoice = voices.find(voice => 
         voice.lang === 'en-US' && 
         voice.name.includes('Daniel')
@@ -20,10 +20,17 @@ function initializeVoices() {
         voice.name.includes('Alex')
     ) || voices.find(voice => 
         voice.lang === 'en-US' && 
+        voice.name.includes('Male')
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' && 
+        (voice.name.includes('Guy') || voice.name.includes('James') || voice.name.includes('John'))
+    ) || voices.find(voice => 
+        voice.lang === 'en-US' && 
         !voice.name.toLowerCase().includes('female') &&
         !voice.name.toLowerCase().includes('samantha') &&
         !voice.name.includes('Microsoft') &&
-        !voice.name.includes('Zira')
+        !voice.name.includes('Zira') &&
+        !voice.name.includes('Cortana')
     ) || voices.find(voice => 
         voice.lang === 'en-US' &&
         !voice.name.toLowerCase().includes('female')
@@ -33,6 +40,12 @@ function initializeVoices() {
     
     if (selectedVoice) {
         console.log('Selected voice:', selectedVoice.name);
+        // Optimize voice parameters for more natural sound
+        speechUtterance = new SpeechSynthesisUtterance();
+        speechUtterance.voice = selectedVoice;
+        speechUtterance.rate = 0.9;     // Slightly slower for clarity
+        speechUtterance.pitch = 0.95;   // Slightly lower pitch for male voice
+        speechUtterance.volume = 1.0;   // Full volume
     }
 }
 
