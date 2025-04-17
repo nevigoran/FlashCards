@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 def connect_db():
     try:
-        db_path = os.path.abspath("flashcards.db")
+        # Use absolute path in the project directory
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flashcards.db")
         print("Используем базу данных:", db_path)
         return sqlite3.connect(db_path)
     except sqlite3.Error as e:
