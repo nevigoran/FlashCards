@@ -67,11 +67,22 @@ function speakWord(lang) {
     speechUtterance = new SpeechSynthesisUtterance(text);
     
     // Set language based on the side
-    speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
+    speechUtterance.lang = lang === 'en' ? 'en-GB' : 'ru-RU';
     
     // Adjust speech parameters for better clarity
     speechUtterance.rate = 0.9;  // Slightly slower than normal
     speechUtterance.pitch = 1;   // Normal pitch
+    
+    // Select an English voice for English words
+    if (lang === 'en') {
+        let voices = speechSynthesis.getVoices();
+        let englishVoice = voices.find(voice => 
+            voice.lang.startsWith('en') && !voice.name.includes('Microsoft')
+        );
+        if (englishVoice) {
+            speechUtterance.voice = englishVoice;
+        }
+    }
     
     // Handle errors
     speechUtterance.onerror = function(event) {
@@ -235,6 +246,13 @@ function resetProgress() {
 document.addEventListener('DOMContentLoaded', () => {
     loadNewWord();
     updateTotalWords();
+
+    // Initialize speech synthesis voices
+    speechSynthesis.onvoiceschanged = () => {
+        speechSynthesis.getVoices();
+    };
+    // Trigger initial voice load
+    speechSynthesis.getVoices();
 });
 
 // Close modal when clicking outside
