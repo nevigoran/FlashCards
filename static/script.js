@@ -49,6 +49,7 @@ function initializeVoices() {
     
     if (selectedVoice) {
         console.log('Selected voice:', selectedVoice.name);
+        // Optimize voice parameters for more natural male sound
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.voice = selectedVoice;
         speechUtterance.rate = 0.9;     // Slightly slower for clarity
@@ -117,30 +118,36 @@ function speakWord(lang) {
         speechSynthesis.cancel();
     }
 
-    // Create a new utterance with the appropriate text and language
+    // Create a new utterance with the appropriate text
     const text = lang === 'en' ? currentWord.word : currentWord.translation;
-    speechUtterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(text);
     
     // Set language and voice properties
-    speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
+    utterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
     if (lang === 'en' && selectedVoice) {
-        speechUtterance.voice = selectedVoice;
-        // Optimize parameters for more natural male voice
-        speechUtterance.rate = 0.9;     // Slightly slower for clarity
-        speechUtterance.pitch = 1.0;    // Natural pitch
-        speechUtterance.volume = 1.0;   // Full volume
+        utterance.voice = selectedVoice;
+        utterance.rate = 0.9;     // Maintain consistent rate
+        utterance.pitch = 0.85;   // Keep the lower pitch for male voice
+        utterance.volume = 1.0;   // Full volume
     }
     
-    // Handle errors
-    speechUtterance.onerror = function(event) {
+    // Add error handling and logging
+    utterance.onerror = function(event) {
         console.error('Speech synthesis error:', event);
         // Try reinitializing voices on error
         initializeVoices();
     };
     
+    utterance.onend = function() {
+        console.log('Speech finished successfully');
+    };
+    
+    // Log the voice being used
+    console.log('Speaking with voice:', utterance.voice ? utterance.voice.name : 'default');
+    
     // Speak the word
-    speechSynthesis.speak(speechUtterance);
+    speechSynthesis.speak(utterance);
 }
 
 function showTranslation() {
