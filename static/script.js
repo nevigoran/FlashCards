@@ -8,44 +8,54 @@ let selectedVoice = null;
 // Initialize voices function
 function initializeVoices() {
     const voices = speechSynthesis.getVoices();
+    console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+    
     // Try different male voice types in order of preference
-    selectedVoice = voices.find(voice => 
-        voice.lang === 'en-US' && 
-        voice.name.includes('Daniel')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' && 
-        voice.name.includes('Tom')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' && 
-        voice.name.includes('Alex')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' && 
-        voice.name.includes('Male')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' && 
-        (voice.name.includes('Guy') || voice.name.includes('James') || voice.name.includes('John'))
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' && 
-        !voice.name.toLowerCase().includes('female') &&
-        !voice.name.toLowerCase().includes('samantha') &&
-        !voice.name.includes('Microsoft') &&
-        !voice.name.includes('Zira') &&
-        !voice.name.includes('Cortana')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US' &&
-        !voice.name.toLowerCase().includes('female')
-    ) || voices.find(voice => 
-        voice.lang === 'en-US'
-    );
+    selectedVoice = voices.find(voice => {
+        const isMaleVoice = 
+            voice.name.toLowerCase().includes('male') ||
+            ['daniel', 'tom', 'alex', 'guy', 'james', 'john'].some(name => 
+                voice.name.toLowerCase().includes(name.toLowerCase())
+            );
+        
+        const isUnwantedVoice = 
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('victoria') ||
+            voice.name.toLowerCase().includes('karen') ||
+            voice.name.includes('Zira') ||
+            voice.name.includes('Microsoft') ||
+            voice.name.includes('Cortana');
+            
+        // Log voice evaluation
+        console.log(`Evaluating voice: ${voice.name} - Male: ${isMaleVoice}, Unwanted: ${isUnwantedVoice}`);
+            
+        return voice.lang.startsWith('en') && isMaleVoice && !isUnwantedVoice;
+    });
+
+    // If no specific male voice found, try to find any non-female English voice
+    if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+            voice.lang.startsWith('en') && 
+            !voice.name.toLowerCase().includes('female') &&
+            !voice.name.toLowerCase().includes('samantha') &&
+            !voice.name.toLowerCase().includes('victoria') &&
+            !voice.name.toLowerCase().includes('karen') &&
+            !voice.name.includes('Zira') &&
+            !voice.name.includes('Microsoft') &&
+            !voice.name.includes('Cortana')
+        );
+    }
     
     if (selectedVoice) {
         console.log('Selected voice:', selectedVoice.name);
-        // Optimize voice parameters for more natural sound
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.voice = selectedVoice;
         speechUtterance.rate = 0.9;     // Slightly slower for clarity
-        speechUtterance.pitch = 0.95;   // Slightly lower pitch for male voice
+        speechUtterance.pitch = 0.85;   // Lower pitch to ensure male voice
         speechUtterance.volume = 1.0;   // Full volume
+    } else {
+        console.log('No suitable male voice found');
     }
 }
 
