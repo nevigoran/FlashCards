@@ -1,51 +1,59 @@
-document.addEventListener("DOMContentLoaded", loadNewWord);
+document.addEventListener("DOMContentLoaded", function() {
+    loadNewWord();
+    
+    // Handle both click and touch events for voice initialization
+    function initVoicesOnInteraction() {
+        if (!window.speechSynthesis) {
+            console.error('Speech synthesis not supported');
+            return;
+        }
+        initializeVoices();
+        // Remove both listeners after first interaction
+        document.removeEventListener('click', initVoicesOnInteraction);
+        document.removeEventListener('touchstart', initVoicesOnInteraction);
+    }
+    
+    document.addEventListener('click', initVoicesOnInteraction);
+    document.addEventListener('touchstart', initVoicesOnInteraction);
+});
 
 let currentWord = null;
 let speechSynthesis = window.speechSynthesis;
 let speechUtterance = null;
 let selectedVoice = null;
+let isInitialized = false;
 
 // Initialize voices function
 function initializeVoices() {
+    if (!isInitialized && 'speechSynthesis' in window) {
+        if ('onvoiceschanged' in speechSynthesis) {
+            speechSynthesis.onvoiceschanged = function() {
+                setupVoices();
+                isInitialized = true;
+            };
+        } else {
+            setupVoices();
+            isInitialized = true;
+        }
+    }
+}
+
+function setupVoices() {
     const voices = speechSynthesis.getVoices();
     console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
     
-    // Try to find an explicitly male voice
-    selectedVoice = voices.find(voice => {
-        // Skip any female or unwanted voices immediately
-        if (voice.name.toLowerCase().includes('female') ||
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('victoria') ||
-            voice.name.toLowerCase().includes('karen') ||
-            voice.name.includes('Zira') ||
-            voice.name.includes('Microsoft') ||
-            voice.name.includes('Cortana')) {
-            return false;
-        }
-        
-        // Look for explicit male voices
-        const isMaleVoice = 
-            voice.name.toLowerCase().includes('male') ||
-            ['daniel', 'tom', 'alex', 'guy', 'james', 'john', 'david'].some(name => 
-                voice.name.toLowerCase().includes(name.toLowerCase())
-            );
-            
-        // Log voice evaluation
-        console.log(`Evaluating voice: ${voice.name} - Selected: ${isMaleVoice && voice.lang.startsWith('en')}`);
-            
-        return voice.lang.startsWith('en') && isMaleVoice;
-    });
+    // Try to find an English voice
+    selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
 
-    // If no voice found, don't use any voice rather than risk using a female one
     if (selectedVoice) {
-        console.log('Selected male voice:', selectedVoice.name);
+        console.log('Selected voice:', selectedVoice.name);
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.voice = selectedVoice;
-        speechUtterance.rate = 0.9;     // Slightly slower for clarity
-        speechUtterance.pitch = 0.85;   // Lower pitch to ensure male voice
-        speechUtterance.volume = 1.0;   // Full volume
+        speechUtterance.rate = 0.9;
+        speechUtterance.pitch = 1.0;
+        speechUtterance.volume = 1.0;
     } else {
-        console.log('No suitable male voice found - speech synthesis disabled');
+        console.log('No English voice found - will try using default voice');
         selectedVoice = null;
     }
 }
@@ -101,45 +109,83 @@ function loadNewWord() {
 }
 
 function speakWord(lang) {
-    if (!currentWord || currentWord.word === "Все слова изучены!" || (lang === 'en' && !selectedVoice)) {
+    if (!currentWord || currentWord.word === "Все слова изучены!") {
         return;
     }
     
-    // Cancel any ongoing speech
-    if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
+    // Check for browser support
+    if (!window.speechSynthesis) {
+        console.error('Speech synthesis not supported in this browser');
+        return;
     }
+
+    // Ensure speech synthesis is initialized
+    if (!isInitialized) {
+        initializeVoices();
+    }
+
+    // Force stop any ongoing speech
+    speechSynthesis.cancel();
 
     // Create a new utterance with the appropriate text
     const text = lang === 'en' ? currentWord.word : currentWord.translation;
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Set language and voice properties
+    // Set language and properties
     utterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
     
-    if (lang === 'en') {
+    if (lang === 'en' && selectedVoice) {
         utterance.voice = selectedVoice;
-        utterance.rate = 0.9;     // Maintain consistent rate
-        utterance.pitch = 0.85;   // Keep the lower pitch for male voice
-        utterance.volume = 1.0;   // Full volume
     }
     
-    // Add error handling and logging
+    // Set speech properties
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    // Comprehensive error handling
     utterance.onerror = function(event) {
         console.error('Speech synthesis error:', event);
-        // Try reinitializing voices on error
-        initializeVoices();
+        // Try to recover
+        speechSynthesis.cancel();
+        setTimeout(() => {
+            try {
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                console.error('Recovery attempt failed:', error);
+            }
+        }, 100);
     };
     
     utterance.onend = function() {
         console.log('Speech finished successfully');
     };
     
-    // Log the voice being used
-    console.log('Speaking with voice:', utterance.voice ? utterance.voice.name : 'default');
+    // Mobile devices often pause speech synthesis when the screen locks
+    // This helps prevent that
+    utterance.onpause = function() {
+        console.log('Speech paused, attempting to resume');
+        speechSynthesis.resume();
+    };
     
-    // Speak the word
-    speechSynthesis.speak(utterance);
+    // Wrap in try-catch and ensure proper mobile handling
+    try {
+        // Some mobile browsers need a small delay
+        setTimeout(() => {
+            speechSynthesis.speak(utterance);
+        }, 50);
+    } catch (error) {
+        console.error('Error during speech synthesis:', error);
+        // Try to recover
+        speechSynthesis.cancel();
+        setTimeout(() => {
+            try {
+                speechSynthesis.speak(utterance);
+            } catch (e) {
+                console.error('Final recovery attempt failed:', e);
+            }
+        }, 100);
+    }
 }
 
 function showTranslation() {
@@ -290,22 +336,6 @@ function resetProgress() {
         }
     });
 }
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadNewWord();
-    updateTotalWords();
-
-    // Initialize voices
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = () => {
-            initializeVoices();
-        };
-    }
-    
-    // Try to initialize voices immediately in case they're already loaded
-    initializeVoices();
-});
 
 // Close modal when clicking outside
 window.onclick = function(event) {
