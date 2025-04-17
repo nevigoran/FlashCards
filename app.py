@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, render_template
 import sqlite3
-import psycopg2
-from psycopg2.extras import DictCursor
 import random
 import os
 from dotenv import load_dotenv
@@ -14,12 +12,17 @@ app = Flask(__name__)
 # Check if we're running on Render (PostgreSQL) or locally (SQLite)
 DATABASE_URL = os.getenv('DATABASE_URL')
 
+# Only import PostgreSQL modules if we're using PostgreSQL
+if DATABASE_URL:
+    import psycopg2
+    from psycopg2.extras import DictCursor
+
 def connect_db():
     if DATABASE_URL:  # We're on Render
         try:
             conn = psycopg2.connect(DATABASE_URL, cursor_factory=DictCursor)
             return conn
-        except psycopg2.Error as e:
+        except Exception as e:
             print("Ошибка подключения к PostgreSQL: {}".format(e))
             raise
     else:  # We're running locally
@@ -265,7 +268,16 @@ def update_word():
         with connect_db() as conn:
             cursor = conn.cursor()
             
-            # Check if the new word already exists
+            # First check if the old word exists
+            if DATABASE_URL:
+                cursor.execute("SELECT * FROM words WHERE word = %s", (old_word,))
+            else:
+                cursor.execute("SELECT * FROM words WHERE word = ?", (old_word,))
+            
+            if not cursor.fetchone():
+                return jsonify({"error": "Слово не найдено"}), 404
+
+            # Then check if the new word already exists (unless it's the same as old word)
             if old_word != new_word:
                 if DATABASE_URL:
                     cursor.execute("SELECT * FROM words WHERE word = %s", (new_word,))
@@ -274,6 +286,7 @@ def update_word():
                 if cursor.fetchone():
                     return jsonify({"error": "Слово '{}' уже существует!".format(new_word)}), 409
 
+            # Finally, update the word
             if DATABASE_URL:
                 cursor.execute("""
                     UPDATE words 
@@ -286,9 +299,6 @@ def update_word():
                     SET word = ?, translation = ?
                     WHERE word = ?
                 """, (new_word, new_translation, old_word))
-            
-            if cursor.rowcount == 0:
-                return jsonify({"error": "Слово не найдено"}), 404
                 
             conn.commit()
             return jsonify({

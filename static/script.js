@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", loadNewWord);
 
 let currentWord = null;
+let speechSynthesis = window.speechSynthesis;
+let speechUtterance = null;
 
 function flipCard() {
     document.querySelector(".card").classList.toggle("flipped");
@@ -23,10 +25,16 @@ function loadNewWord() {
                 currentWord = null;
                 document.getElementById('word').textContent = data.word;
                 document.getElementById('translation').textContent = '';
+                document.querySelectorAll('.speak-button').forEach(button => {
+                    button.style.visibility = 'hidden';
+                });
             } else {
                 currentWord = data;
                 document.getElementById('word').textContent = data.word;
                 document.getElementById('translation').textContent = data.translation;
+                document.querySelectorAll('.speak-button').forEach(button => {
+                    button.style.visibility = 'visible';
+                });
             }
             
             // Always reset card to front side when loading new word
@@ -40,7 +48,38 @@ function loadNewWord() {
             console.error('Error loading word:', error);
             document.getElementById('word').textContent = 'Ошибка загрузки';
             document.getElementById('translation').textContent = '';
+            document.querySelectorAll('.speak-button').forEach(button => {
+                button.style.visibility = 'hidden';
+            });
         });
+}
+
+function speakWord(lang) {
+    if (!currentWord || currentWord.word === "Все слова изучены!") return;
+    
+    // Cancel any ongoing speech
+    if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+    }
+
+    // Create a new utterance with the appropriate text and language
+    const text = lang === 'en' ? currentWord.word : currentWord.translation;
+    speechUtterance = new SpeechSynthesisUtterance(text);
+    
+    // Set language based on the side
+    speechUtterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
+    
+    // Adjust speech parameters for better clarity
+    speechUtterance.rate = 0.9;  // Slightly slower than normal
+    speechUtterance.pitch = 1;   // Normal pitch
+    
+    // Handle errors
+    speechUtterance.onerror = function(event) {
+        console.error('Speech synthesis error:', event);
+    };
+    
+    // Speak the word
+    speechSynthesis.speak(speechUtterance);
 }
 
 function showTranslation() {
