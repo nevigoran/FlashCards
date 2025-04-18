@@ -122,10 +122,12 @@ function loadNewWord() {
     fetch("/word")
         .then(response => response.json())
         .then(data => {
-            if (data.word === "Все слова изучены!") {
+            console.log("Полученное слово:", data);
+
+            if (!data.word || data.word === "Все слова изучены!") {
                 currentWord = null;
-                document.getElementById("word").textContent = data.word;
-                document.getElementById("translation").textContent = "";
+                document.getElementById("word").textContent = "🎉 Все слова изучены!";
+                document.getElementById("translation").textContent = "Нажми 'Начать сначала' для повторения!";
                 document.querySelectorAll(".speak-button").forEach(button => {
                     button.style.visibility = "hidden";
                 });
@@ -137,7 +139,7 @@ function loadNewWord() {
                     button.style.visibility = "visible";
                 });
             }
-            
+
             const card = document.querySelector(".card");
             card.classList.remove("flipped");
 
@@ -145,7 +147,7 @@ function loadNewWord() {
             loadStats();
         })
         .catch(error => {
-            console.error("Error loading word:", error);
+            console.error("Ошибка загрузки слова:", error);
             document.getElementById("word").textContent = "Ошибка загрузки";
             document.getElementById("translation").textContent = "";
             document.querySelectorAll(".speak-button").forEach(button => {
