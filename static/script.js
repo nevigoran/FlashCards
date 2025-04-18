@@ -42,17 +42,36 @@ function setupVoices() {
     const voices = speechSynthesis.getVoices();
     console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
     
-    // Common male voice indicators
+    // Indicators for identifying voices
     const maleIndicators = ['male', 'david', 'james', 'daniel', 'tom', 'alex', 'viktor', 'dmitri'];
+    const femaleIndicators = ['female', 'microsoft', 'google', 'alice', 'anna', 'mary', 'victoria', 'milena'];
+
+    // Helper function to check if a voice is female
+    function isFemaleVoice(voice) {
+        return femaleIndicators.some(indicator => 
+            voice.name.toLowerCase().includes(indicator)
+        );
+    }
 
     // Helper function to find a male voice for a specific language
     function findMaleVoice(langPrefix) {
-        return voices.find(voice => 
+        // First try to find an explicitly male voice
+        let voice = voices.find(voice => 
             voice.lang.startsWith(langPrefix) && 
             maleIndicators.some(indicator => 
                 voice.name.toLowerCase().includes(indicator)
             )
         );
+
+        // If no explicit male voice found, use any non-female voice
+        if (!voice) {
+            voice = voices.find(voice => 
+                voice.lang.startsWith(langPrefix) && 
+                !isFemaleVoice(voice)
+            );
+        }
+
+        return voice;
     }
 
     // Try to find male voices for both English and Russian
@@ -60,8 +79,8 @@ function setupVoices() {
     const maleRussianVoice = findMaleVoice('ru');
 
     // Store both voices
-    window.englishVoice = maleEnglishVoice || voices.find(voice => voice.lang.startsWith('en'));
-    window.russianVoice = maleRussianVoice || voices.find(voice => voice.lang.startsWith('ru'));
+    window.englishVoice = maleEnglishVoice;
+    window.russianVoice = maleRussianVoice;
 
     // For backward compatibility
     selectedVoice = window.englishVoice;
@@ -71,7 +90,7 @@ function setupVoices() {
         console.log('Selected Russian voice:', window.russianVoice?.name);
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.rate = 0.9;
-        speechUtterance.pitch = 1.0;
+        speechUtterance.pitch = 0.8; // Even lower pitch to ensure masculine sound
         speechUtterance.volume = 1.0;
     } else {
         console.log('No voices found - will try using default voice');
@@ -154,33 +173,33 @@ function speakWord(lang) {
     // Set language and voice based on the language
     if (lang === 'en') {
         utterance.lang = 'en-US';
+        // Only use selected male English voice
         if (window.englishVoice) {
             utterance.voice = window.englishVoice;
+        } else {
+            console.log('No male English voice available');
+            return; // Don't speak if no male voice available
         }
     } else {
         utterance.lang = 'ru-RU';
+        // Only use selected male Russian voice
         if (window.russianVoice) {
             utterance.voice = window.russianVoice;
+        } else {
+            console.log('No male Russian voice available');
+            return; // Don't speak if no male voice available
         }
     }
     
-    // Set speech properties - slightly lower pitch to ensure more masculine sound
+    // Set speech properties for masculine sound
     utterance.rate = 0.9;
-    utterance.pitch = 0.9;  // Lowered pitch slightly
+    utterance.pitch = 0.8; // Lower pitch to ensure masculine sound
     utterance.volume = 1.0;
     
-    // Comprehensive error handling
+    // Error handling
     utterance.onerror = function(event) {
         console.error('Speech synthesis error:', event);
-        // Try to recover
         speechSynthesis.cancel();
-        setTimeout(() => {
-            try {
-                speechSynthesis.speak(utterance);
-            } catch (error) {
-                console.error('Recovery attempt failed:', error);
-            }
-        }, 100);
     };
     
     utterance.onend = function() {
@@ -199,13 +218,6 @@ function speakWord(lang) {
     } catch (error) {
         console.error('Error during speech synthesis:', error);
         speechSynthesis.cancel();
-        setTimeout(() => {
-            try {
-                speechSynthesis.speak(utterance);
-            } catch (e) {
-                console.error('Final recovery attempt failed:', e);
-            }
-        }, 100);
     }
 }
 
