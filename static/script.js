@@ -42,28 +42,49 @@ function setupVoices() {
     const voices = speechSynthesis.getVoices();
     console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
     
-    // Indicators for identifying voices
-    const maleIndicators = ['male', 'david', 'james', 'daniel', 'tom', 'alex', 'viktor', 'dmitri'];
-    const femaleIndicators = ['female', 'microsoft', 'google', 'alice', 'anna', 'mary', 'victoria', 'milena'];
+    // Expanded list of male voice indicators
+    const maleIndicators = [
+        'male', 'david', 'james', 'daniel', 'tom', 'alex', 'viktor', 'dmitri',
+        'peter', 'paul', 'john', 'mike', 'thomas', 'robert', 'william',
+        'mikhail', 'ivan', 'boris', 'george', 'steve', 'guy'
+    ];
+    
+    // Expanded list of female voice indicators to filter out
+    const femaleIndicators = [
+        'female', 'microsoft', 'google us', 'alice', 'anna', 'mary', 'victoria',
+        'milena', 'elena', 'julia', 'maria', 'sarah', 'samantha', 'susan',
+        'zira', 'karen', 'monika', 'laura', 'siri'
+    ];
 
     // Helper function to check if a voice is female
     function isFemaleVoice(voice) {
-        return femaleIndicators.some(indicator => 
-            voice.name.toLowerCase().includes(indicator)
-        );
+        const lowerName = voice.name.toLowerCase();
+        return femaleIndicators.some(indicator => lowerName.includes(indicator));
+    }
+
+    // Helper function to check if a voice is male
+    function isMaleVoice(voice) {
+        const lowerName = voice.name.toLowerCase();
+        return maleIndicators.some(indicator => lowerName.includes(indicator));
     }
 
     // Helper function to find a male voice for a specific language
     function findMaleVoice(langPrefix) {
         // First try to find an explicitly male voice
         let voice = voices.find(voice => 
-            voice.lang.startsWith(langPrefix) && 
-            maleIndicators.some(indicator => 
-                voice.name.toLowerCase().includes(indicator)
-            )
+            voice.lang.startsWith(langPrefix) && isMaleVoice(voice)
         );
 
         // If no explicit male voice found, use any non-female voice
+        if (!voice) {
+            voice = voices.find(voice => 
+                voice.lang.startsWith(langPrefix) && 
+                !isFemaleVoice(voice) &&
+                !voice.name.toLowerCase().includes('google') // Avoid generic Google voices
+            );
+        }
+
+        // If still no voice found, try any non-female voice including Google
         if (!voice) {
             voice = voices.find(voice => 
                 voice.lang.startsWith(langPrefix) && 
@@ -90,7 +111,7 @@ function setupVoices() {
         console.log('Selected Russian voice:', window.russianVoice?.name);
         speechUtterance = new SpeechSynthesisUtterance();
         speechUtterance.rate = 0.9;
-        speechUtterance.pitch = 0.8; // Even lower pitch to ensure masculine sound
+        speechUtterance.pitch = 0.75; // Even lower pitch to ensure masculine sound
         speechUtterance.volume = 1.0;
     } else {
         console.log('No voices found - will try using default voice');
@@ -158,9 +179,11 @@ function speakWord(lang) {
         return;
     }
 
-    // Ensure speech synthesis is initialized
+    // Force voices to initialize if not done
     if (!isInitialized) {
         initializeVoices();
+        // Wait a moment for voices to load on mobile
+        return setTimeout(() => speakWord(lang), 100);
     }
 
     // Force stop any ongoing speech
@@ -173,7 +196,6 @@ function speakWord(lang) {
     // Set language and voice based on the language
     if (lang === 'en') {
         utterance.lang = 'en-US';
-        // Only use selected male English voice
         if (window.englishVoice) {
             utterance.voice = window.englishVoice;
         } else {
@@ -182,7 +204,6 @@ function speakWord(lang) {
         }
     } else {
         utterance.lang = 'ru-RU';
-        // Only use selected male Russian voice
         if (window.russianVoice) {
             utterance.voice = window.russianVoice;
         } else {
@@ -193,31 +214,52 @@ function speakWord(lang) {
     
     // Set speech properties for masculine sound
     utterance.rate = 0.9;
-    utterance.pitch = 0.8; // Lower pitch to ensure masculine sound
+    utterance.pitch = 0.75; // Lower pitch for more masculine sound
     utterance.volume = 1.0;
     
-    // Error handling
+    // Error handling with retry logic
     utterance.onerror = function(event) {
         console.error('Speech synthesis error:', event);
         speechSynthesis.cancel();
+        // Try to reinitialize voices and retry once
+        if (!event.handled) {
+            event.handled = true;
+            initializeVoices();
+            setTimeout(() => speakWord(lang), 100);
+        }
     };
     
     utterance.onend = function() {
         console.log('Speech finished successfully');
+        speechSynthesis.cancel(); // Ensure cleanup after speech
     };
     
+    // Handle mobile device specific issues
     utterance.onpause = function() {
         console.log('Speech paused, attempting to resume');
         speechSynthesis.resume();
     };
     
     try {
+        // Add a small delay for mobile devices
         setTimeout(() => {
-            speechSynthesis.speak(utterance);
+            if (window.englishVoice || window.russianVoice) {
+                speechSynthesis.speak(utterance);
+            }
         }, 50);
     } catch (error) {
         console.error('Error during speech synthesis:', error);
         speechSynthesis.cancel();
+        // Try to recover once
+        setTimeout(() => {
+            try {
+                if (window.englishVoice || window.russianVoice) {
+                    speechSynthesis.speak(utterance);
+                }
+            } catch (e) {
+                console.error('Final recovery attempt failed:', e);
+            }
+        }, 100);
     }
 }
 
